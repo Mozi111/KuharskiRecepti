@@ -24,8 +24,7 @@ def shrani(url, ime_datoteke, vsili_prenos=False):
         print('stran ne obstaja!')
     pripravi_imenik(ime_datoteke)
     with open(ime_datoteke, 'w') as datoteka:
-        besedilo = str(r.text.encode("utf-8"))
-        datoteka.write(besedilo)
+        datoteka.write(r.text)
         print('shranjeno!')
 
 

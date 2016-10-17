@@ -2,21 +2,28 @@ import re
 import orodja
 
 
- def zajemi_imdb():
-     'https://www.kulinarika.net/recepti/seznam/?sort=popularnost&offset=72''
-     orodja.shrani('http://www.imdb.com/chart/top?ref_=nv_mv_250_6', 'zajete-strani/imdb.html')
+def zajemi_recepte():
+    for i in range(0,4):
+         spletna_stran = 'https://www.kulinarika.net/recepti/seznam/'
+         parametri = '?sort=popularnost&offset={}'.format(i*12)
+         naslov = spletna_stran + parametri
+         ime_datoteke = 'ReceptiHTML/Stran{:02}.html'.format(i)
+         orodja.shrani(naslov, ime_datoteke)
 
-    regex_url_zanra = re.compile(
-        r'href="(?P<url>/search/title\?genres=(?P<zanr>.+?)'
-        r'&sort=user_rating,desc&title_type=feature&num_votes=25000,)'
-    )
-
-    for zanr in re.finditer(regex_url_zanra,
-                            orodja.vsebina_datoteke('zajete-strani/imdb.html')):
-        for i in range(1, 201, 50):
-            url = 'http://www.imdb.com{}?&start={}'.format(zanr.group('url'), i)
-            ime_datoteke = 'zajete-strani/imdb/{}-{}.html'.format(zanr.group('zanr'), i)
-            orodja.shrani(url, ime_datoteke)
+zajemi_recepte()
+    #  orodja.shrani('http://www.imdb.com/chart/top?ref_=nv_mv_250_6', 'zajete-strani/imdb.html')
+    #
+    # regex_url_zanra = re.compile(
+    #     r'href="(?P<url>/search/title\?genres=(?P<zanr>.+?)'
+    #     r'&sort=user_rating,desc&title_type=feature&num_votes=25000,)'
+    # )
+    #
+    # for zanr in re.finditer(regex_url_zanra,
+    #                         orodja.vsebina_datoteke('zajete-strani/imdb.html')):
+    #     for i in range(1, 201, 50):
+    #         url = 'http://www.imdb.com{}?&start={}'.format(zanr.group('url'), i)
+    #         ime_datoteke = 'zajete-strani/imdb/{}-{}.html'.format(zanr.group('zanr'), i)
+    #         orodja.shrani(url, ime_datoteke)
 #
 #
 # def zajemi_rotten():
