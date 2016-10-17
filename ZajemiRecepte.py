@@ -1,6 +1,8 @@
 import re
 import orodja
 
+naslov_strani = 'https://www.kulinarika.net/recepti/seznam/?sort=popularnost&offset=0'
+orodja.shrani(naslov_strani, 'test.html')
 
 def zajemi_recepte():
     for i in range(0,4):
