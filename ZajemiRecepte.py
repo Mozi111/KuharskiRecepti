@@ -5,7 +5,7 @@ naslov_strani = 'https://www.kulinarika.net/recepti/seznam/?sort=popularnost&off
 orodja.shrani(naslov_strani, 'test.html')
 
 def zajemi_recepte():
-    for i in range(0,4):
+    for i in range(0,100):
          spletna_stran = 'https://www.kulinarika.net/recepti/seznam/'
          parametri = '?sort=popularnost&offset={}'.format(i*12)
          naslov = spletna_stran + parametri
@@ -40,8 +40,49 @@ zajemi_recepte()
 #         url = 'http://www.rottentomatoes.com{}'.format(zanr.group('url'))
 #         ime_datoteke = 'zajete-strani/rotten/{}.html'.format(zanr.group('zanr'))
 #         orodja.shrani(url, ime_datoteke)
-#
-#
+
+def pripravi_recepte():
+     regex_recepta = re.compile(
+          r'''<a href='/recepti/(?P<id>\d+)/.*?' title='Objava recepta: (?P<objava>\d{0,2}\.\d{0,2}\.\d{0,4})<br>.*?'''
+          r'''(Število mnenj: (?P<stmnenj>\d*).*?)?'''
+          r'''(<br><br>Zadnja fotografija: (?P<zadnjafoto>\d{0,2}\.\d{0,2}\.\d{0,4}))?'''
+          r'''(<br>Število fotografij: (?P<stfoto>\d*)'>)?'''
+          r'''(<img src='.*?'></a>)?'''
+          r'''</div><h3 class='single-line'>'''
+          r'''(<img class='ikona-zdrav-recept tiptip' src='/grafika6/ikona-zdravo.png' title='(?P<zdravajed>.*?)' />)?'''
+          r'''<a href='/recepti/.*?' '''
+          r'''title='Objava recepta: \d{0,2}\.\d{0,2}\.\d{0,4}(<br>Število mnenj: \d*)?'''
+          r'''(<br><br>Zadnja fotografija: \d{0,2}\.\d{0,2}\.\d{0,4})?'''
+          r'''(<br>Število fotografij: \d*)?'''
+          r'''.?>(?P<naslov>.*?)</a>.*?'''
+          #Zahtevnost
+          #r'''tezavnost'><img src='(?P<tezavnost1>.*?)png' '''
+          #r'''title='zahtevnost'><img src='/grafika6/ikona-(?P<tezavnost2>.*?.png' alt='Zahtevnost' '''
+          #r'''title='zahtevnost'><img src='/grafika6/ikona-(?P<tezavnost3>.*?.png' alt='Zahtevnost' '''
+          #r'''title='zahtevnost'><img src='/grafika6/ikona-(?P<tezavnost4>.*?.png' alt='Zahtevnost' '''
+          #r'''title='zahtevnost'><img src='/grafika6/ikona-(?P<tezavnost5>.*?.png' alt='Zahtevnost' '''
+          ####
+          r'''(<span class='cas'>(?P<priprava>.*?)</span></p>.*?)?'''
+          r'''(kolicina: (?P<kolicina>.*?)</p></div>.*?)?'''
+          r'''(<img class='spol' src='.*?' title='(?P<spol>.*?)'.*?)?'''
+          r'''(a class='username' href='.*?'>(?P<avtor>.*?)</a>.*?)?'''
+          r'''<p class='kategorija no-mobile-640'>(?P<kategorija>.*?)(:(?P<podkategorija>.*?))?</p>'''
+          ,flags=re.DOTALL)
+
+     recepti, avtorji, kategorije = {}, {}, {}
+     #vloge, dolocitve_zanra = set(), set()
+     #zanri_korenov = {}
+
+     for html_datoteka in orodja.datoteke('ReceptiHTML/'):
+          print(html_datoteka)
+          for recept in re.finditer(regex_recepta, orodja.vsebina_datoteke(html_datoteka)):
+               print(recept.groupdict())
+               #id_filma, podatki = uredi_film(film)
+               #filmi[id_filma] = podatki
+pripravi_recepte()
+#    orodja.zapisi_tabelo(sorted(filmi.values(), key=lambda film: film['id']),
+#                         ['id', 'naslov', 'leto', 'ocena'], 'csv-datoteke/filmi.csv')
+
 # def pripravi_imdb():
 #     regex_filma = re.compile(
 #         r'<tr class="(odd|even) detailed">.*?'

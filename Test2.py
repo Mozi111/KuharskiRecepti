@@ -21,9 +21,10 @@ def shrani(url, ime_datoteke, vsili_prenos=False):
     except requests.exceptions.ConnectionError:
         print('stran ne obstaja!')
     pripravi_imenik(ime_datoteke)
-    with open(ime_datoteke, 'w') as datoteka:
+    with open(ime_datoteke, 'w', encoding='utf-8') as datoteka:
         datoteka.write(r.text)
         print('shranjeno!')
 
-webpage = 'https://www.kulinarika.net/recepti/seznam/?sort=popularnost&offset=0'
+webpage2 = 'http://www.rottentomatoes.com/'
+webpage = 'http://www.kulinarika.net/recepti/seznam/?sort=popularnost&offset=0'
 shrani(webpage, 'test.html')
