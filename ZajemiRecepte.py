@@ -1,9 +1,6 @@
 import re
 import orodja
 
-naslov_strani = 'https://www.kulinarika.net/recepti/seznam/?sort=popularnost&offset=0'
-orodja.shrani(naslov_strani, 'test.html')
-
 def zajemi_recepte():
     for i in range(0,100):
          spletna_stran = 'https://www.kulinarika.net/recepti/seznam/'
@@ -43,14 +40,14 @@ zajemi_recepte()
 
 def pripravi_recepte():
      regex_recepta = re.compile(
-          r'''<a href='/recepti/(?P<id>\d+)/.*?' title='Objava recepta: (?P<objava>\d{0,2}\.\d{0,2}\.\d{0,4})<br>.*?'''
+          r'''<a href='/recepti/.*?' title='Objava recepta: (?P<objava>\d{0,2}\.\d{0,2}\.\d{0,4})<br>.*?'''
           r'''(Število mnenj: (?P<stmnenj>\d*).*?)?'''
           r'''(<br><br>Zadnja fotografija: (?P<zadnjafoto>\d{0,2}\.\d{0,2}\.\d{0,4}))?'''
           r'''(<br>Število fotografij: (?P<stfoto>\d*)'>)?'''
           r'''(<img src='.*?'></a>)?'''
           r'''</div><h3 class='single-line'>'''
           r'''(<img class='ikona-zdrav-recept tiptip' src='/grafika6/ikona-zdravo.png' title='(?P<zdravajed>.*?)' />)?'''
-          r'''<a href='/recepti/.*?' '''
+          r'''<a href='/recepti/(?P<id>\d*)/.*?' '''
           r'''title='Objava recepta: \d{0,2}\.\d{0,2}\.\d{0,4}(<br>Število mnenj: \d*)?'''
           r'''(<br><br>Zadnja fotografija: \d{0,2}\.\d{0,2}\.\d{0,4})?'''
           r'''(<br>Število fotografij: \d*)?'''
@@ -74,11 +71,21 @@ def pripravi_recepte():
      #zanri_korenov = {}
 
      for html_datoteka in orodja.datoteke('ReceptiHTML/'):
-          print(html_datoteka)
+          #print(html_datoteka)
+          stevilo_receptov = 0
           for recept in re.finditer(regex_recepta, orodja.vsebina_datoteke(html_datoteka)):
                print(recept.groupdict())
+               podatki = recept.groupdict()
+               id_recepta = podatki['id']
+               recepti[id_recepta] = podatki
+               stevilo_receptov += 1
                #id_filma, podatki = uredi_film(film)
                #filmi[id_filma] = podatki
+          #print(str(stevilo_receptov) + ' strani')
+
+     orodja.zapisi_tabelo(sorted(recepti.values(), key=lambda recept: recept['id']),
+                          ['id', 'naslov', 'objava', 'avtor', 'spol', 'priprava', 'kolicina', 'stmnenj', 'stfoto', 'zadnjafoto', 'kategorija', 'podkategorija', 'zdravajed'], 'csv-datoteke/recepti.csv')
+
 pripravi_recepte()
 #    orodja.zapisi_tabelo(sorted(filmi.values(), key=lambda film: film['id']),
 #                         ['id', 'naslov', 'leto', 'ocena'], 'csv-datoteke/filmi.csv')
