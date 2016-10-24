@@ -13,16 +13,16 @@ zajemi_recepte()
 
 regex_recepta = re.compile(
           r'''<a href='/recepti/.*?' title='Objava recepta: (?P<objava>\d{0,2}\.\d{0,2}\.\d{0,4})<br>.*?'''
-          r'''(Å tevilo mnenj: (?P<stmnenj>\d*).*?)?'''
+          r'''(Število mnenj: (?P<stmnenj>\d*).*?)?'''
           r'''(<br><br>Zadnja fotografija: (?P<zadnjafoto>\d{0,2}\.\d{0,2}\.\d{0,4}))?'''
-          r'''(<br>Å tevilo fotografij: (?P<stfoto>\d*)'>)?'''
+          r'''(<br>Število fotografij: (?P<stfoto>\d*)'>)?'''
           r'''(<img src='.*?'></a>)?'''
           r'''</div><h3 class='single-line'>'''
           r'''(<img class='ikona-zdrav-recept tiptip' src='/grafika6/ikona-zdravo.png' title='(?P<zdravajed>.*?)' />)?'''
           r'''<a href='/recepti/(?P<id>\d*)/.*?' '''
-          r'''title='Objava recepta: \d{0,2}\.\d{0,2}\.\d{0,4}(<br>Å tevilo mnenj: \d*)?'''
+          r'''title='Objava recepta: \d{0,2}\.\d{0,2}\.\d{0,4}(<br>Število mnenj: \d*)?'''
           r'''(<br><br>Zadnja fotografija: \d{0,2}\.\d{0,2}\.\d{0,4})?'''
-          r'''(<br>Å tevilo fotografij: \d*)?'''
+          r'''(<br>Število fotografij: \d*)?'''
           r'''.?>(?P<naslov>.*?)</a>.*?'''
           #Zahtevnost
           #r'''tezavnost'><img src='(?P<tezavnost1>.*?)png' '''
@@ -34,7 +34,7 @@ regex_recepta = re.compile(
           r'''(<span class='cas'>(?P<priprava>.*?)</span></p>.*?)?'''
           r'''(kolicina: (?P<kolicina>.*?)</p></div>.*?)?'''
           r'''(<img class='spol' src='.*?' title='(?P<spol>.*?)'.*?)?'''
-          r'''(a class='username' href='/uporabniki/seznam/(?P<idavtorja>.*?)/'>(?P<avtor>.*?)</a>.*?)?'''
+          r'''(a class='username' href='/uporabniki/seznam/(?P<idavtorja>)/'>(?P<avtor>.*?)</a>.*?)?'''
           r'''<p class='kategorija no-mobile-640'>(?P<kategorija>.*?)(:(?P<podkategorija>.*?))?</p>'''
           ,flags=re.DOTALL)
 
@@ -59,47 +59,38 @@ def pocisti_recept(recept):
      podatki = recept.groupdict()
      podatki['id'] = int(podatki['id'])
      podatki['naslov'] = podatki['naslov'].strip()
-     if podatki['priprava']:
-         if podatki['priprava'].split()[1] == "ur":
+     if podatki['priprava'].split()[1] == "ur":
           podatki['priprava'] = int(300)
-         else:
+     else:
           podatki['priprava'] = int(podatki['priprava'].split()[0])
-     if podatki['stmnenj']:
-        podatki['stmnenj'] = int(podatki['stmnenj'])
-     if podatki['stfoto']:
-        podatki['stfoto'] = int(podatki['stfoto'])
-     if podatki['zdravajed']:
+     podatki['stmnenj'] = int(podatki['stmnenj'])
+     podatki['stfoto'] = int(podatki['stfoto'])
+     if podatki['zdravajed'] == "Bolj zdrava jed":
           podatki['zdravajed'] = int(1)
      else:
           podatki['zdravajed'] = int(0)
      podatki['letoobjave'] = re.split(r'\.', podatki['objava'])[2]
-     if podatki['zadnjafoto']:
-        podatki['letofoto'] = re.split(r'\.', podatki['zadnjafoto'])[2]
-
+     podatki['letofoto'] = re.split(r'\.', podatki['zadnjafoto'])[2]
      podatki['avtor'] = {'id': podatki['idavtorja'], 'avtor': podatki['avtor']}
-     #print(podatki['avtor']['id'])
-     return podatki
 
 def razdeli_tabelo(recepti):
      avtorji, kategorije, povezave = [], [], []
-     viden_avtor = []
+     viden_avtor = set()
 
      for recept in recepti:
-          if recept['kategorija']:
-               for kategorija in recept.pop('kategorija'):
-                    kategorije.append({'recept': recept['id'], 'kategorija': kategorija})
-          avtor = recept['avtor']
-          print(avtor)
-          if avtor['id'] not in viden_avtor:
-              viden_avtor.append(avtor['id'])
-          avtorji.append(avtor)
-          povezave.append({'recept': recept['id'], 'avtor': avtor['id']})
-     return recepti, avtorji, kategorije, povezave
+          for kategorija in recept.pop('kategorija'):
+               kategorije.append({'recept': recepti['id'], 'kategorija': kategorija})
+          for avtor in recept.pop('avtor'):
+               if avtor['id'] not in viden_avtor:
+                    viden_avtor.add(avtor['id'])
+                    avtorji.append(avtor)
+               povezave.append({'recept': recepti['id'], 'avtor': avtor['id']})
+     return avtorji, kategorije, povezave
 
-recepti = izloci_podatke_receptov('ReceptiHTML/')
+recepti = izloci_podatke_receptov('/ReceptiHTML/')
 recepti, avtorji, kategorije, povezave = razdeli_tabelo(recepti)
 orodja.zapisi_tabelo(recepti, ['id', 'naslov', 'objava', 'avtor', 'spol', 'priprava', 'kolicina', 'stmnenj', 'stfoto',
-                      'zadnjafoto', 'kategorija', 'podkategorija', 'zdravajed', 'letofoto', 'letoobjave', 'idavtorja'], 'recepti.csv')
+                      'zadnjafoto', 'kategorija', 'podkategorija', 'zdravajed'], 'recepti.csv')
 orodja.zapisi_tabelo(avtorji, ['id', 'avtor'], 'avtorji.csv')
 orodja.zapisi_tabelo(povezave, ['recept', 'avtor'], 'povezave.csv')
 orodja.zapisi_tabelo(kategorije, ['recept', 'kategorija'], 'kategorije.csv')
