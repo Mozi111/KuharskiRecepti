@@ -25,59 +25,60 @@ regex_recepta = re.compile(
           r'''(<br>Število fotografij: \d*)?'''
           r'''.?>(?P<naslov>.*?)</a>.*?'''
           #Zahtevnost
-          #r'''tezavnost'><img src='(?P<tezavnost1>.*?)png' '''
-          #r'''title='zahtevnost'><img src='/grafika6/ikona-(?P<tezavnost2>.*?.png' alt='Zahtevnost' '''
-          #r'''title='zahtevnost'><img src='/grafika6/ikona-(?P<tezavnost3>.*?.png' alt='Zahtevnost' '''
-          #r'''title='zahtevnost'><img src='/grafika6/ikona-(?P<tezavnost4>.*?.png' alt='Zahtevnost' '''
-          #r'''title='zahtevnost'><img src='/grafika6/ikona-(?P<tezavnost5>.*?.png' alt='Zahtevnost' '''
+          r'''tezavnost'><img src='/grafika6/ikona-(?P<tezavnost1>.*?)\.png' alt='Zahtevnost' '''
+          r'''title='zahtevnost'><img src='/grafika6/ikona-(?P<tezavnost2>.*?)\.png' alt='Zahtevnost' '''
+          r'''title='zahtevnost'><img src='/grafika6/ikona-(?P<tezavnost3>.*?)\.png' alt='Zahtevnost' '''
+          r'''title='zahtevnost'><img src='/grafika6/ikona-(?P<tezavnost4>.*?)\.png' alt='Zahtevnost' '''
+          r'''title='zahtevnost'><img src='/grafika6/ikona-(?P<tezavnost5>.*?)\.png' alt='Zahtevnost'.*?'''
           ####
           r'''(<span class='cas'>(?P<priprava>.*?)</span></p>.*?)?'''
           r'''(kolicina: (?P<kolicina>.*?)</p></div>.*?)?'''
           r'''(<img class='spol' src='.*?' title='(?P<spol>.*?)'.*?)?'''
           r'''(a class='username' href='/uporabniki/seznam/(?P<idavtorja>.*?)/'>(?P<avtor>.*?)</a>.*?)?'''
-          r'''<p class='kategorija no-mobile-640'>(?P<kategorija>.*?)(:(?P<podkategorija>.*?))?</p>'''
+          r'''<p class='kategorija no-mobile-640'>(?P<kategorija>.*?)(:\W(?P<podkategorija>.*?))?</p>'''
           ,flags=re.DOTALL)
 
 def izloci_podatke_receptov(imenik):
      recepti = []
      for html_datoteka in orodja.datoteke(imenik):
-          #print(html_datoteka)
-          stevilo_receptov = 0
           for recept in re.finditer(regex_recepta, orodja.vsebina_datoteke(html_datoteka)):
-               #print(recept.groupdict())
                recepti.append(pocisti_recept(recept))
-               # podatki = recept.groupdict()
-               # id_recepta = podatki['id']
-               # recepti[id_recepta] = podatki
-               # stevilo_receptov += 1
-               #id_filma, podatki = uredi_film(film)
-               #filmi[id_filma] = podatki
-          #print(str(stevilo_receptov) + ' strani')
      return recepti
 
 def pocisti_recept(recept):
      podatki = recept.groupdict()
      podatki['id'] = int(podatki['id'])
      podatki['naslov'] = podatki['naslov'].strip()
+     # Ce je priprava v minutah, shrani kot stevilo
+     # Ce je priprava 4+ ur shrani kot besedilo
      if podatki['priprava']:
-         if podatki['priprava'].split()[1] == "ur":
-          podatki['priprava'] = int(300)
-         else:
-          podatki['priprava'] = int(podatki['priprava'].split()[0])
+         if podatki['priprava'].split()[1] != "ur":
+             podatki['priprava'] = int(podatki['priprava'].split()[0])
      if podatki['stmnenj']:
         podatki['stmnenj'] = int(podatki['stmnenj'])
      if podatki['stfoto']:
         podatki['stfoto'] = int(podatki['stfoto'])
-     if podatki['zdravajed']:
-          podatki['zdravajed'] = int(1)
-     else:
-          podatki['zdravajed'] = int(0)
-     podatki['letoobjave'] = re.split(r'\.', podatki['objava'])[2]
+     #Prešteje zahtevnost recepta
+     zahtevnost = 0
+     for i in range(1,6):
+         if podatki['tezavnost'+str(i)] == "utez":
+             zahtevnost += 1
+     podatki['zahtevnost'] = zahtevnost
+     del podatki['tezavnost1']
+     del podatki['tezavnost2']
+     del podatki['tezavnost3']
+     del podatki['tezavnost4']
+     del podatki['tezavnost5']
+     # Ce podatkov o bolj zdravi jedi ni
+     if not podatki['zdravajed']:
+          podatki['zdravajed'] = "Ni podano"
+     podatki['letoobjave'] = int(re.split(r'\.', podatki['objava'])[2])
      if podatki['zadnjafoto']:
-        podatki['letofoto'] = re.split(r'\.', podatki['zadnjafoto'])[2]
+        podatki['letofoto'] = int(re.split(r'\.', podatki['zadnjafoto'])[2])
 
-     podatki['avtor'] = {'id': podatki['idavtorja'], 'avtor': podatki['avtor']}
-     #print(podatki['avtor']['id'])
+     podatki['avtor'] = {'id': podatki['idavtorja'], 'avtor': podatki['avtor'], 'spol': podatki['spol']}
+     del podatki['idavtorja']
+     del podatki['spol']
      return podatki
 
 def razdeli_tabelo(recepti):
@@ -86,131 +87,28 @@ def razdeli_tabelo(recepti):
 
      for recept in recepti:
           if recept['kategorija']:
-               for kategorija in recept.pop('kategorija'):
-                    kategorije.append({'recept': recept['id'], 'kategorija': kategorija})
+               if recept['podkategorija']:
+                   kategorije.append({'recept': recept['id'], 'kategorija': recept['kategorija'],
+                                      'podkategorija': recept['podkategorija']})
+                   del recept['kategorija']
+                   del recept['podkategorija']
+               else:
+                    kategorije.append({'recept': recept['id'], 'kategorija': recept['kategorija']})
+                    del recept['kategorija']
+                    del recept['podkategorija']
           avtor = recept['avtor']
-          print(avtor)
           if avtor['id'] not in viden_avtor:
               viden_avtor.append(avtor['id'])
-          avtorji.append(avtor)
+              avtorji.append(avtor)
           povezave.append({'recept': recept['id'], 'avtor': avtor['id']})
+          del recept['avtor']
      return recepti, avtorji, kategorije, povezave
 
 recepti = izloci_podatke_receptov('ReceptiHTML/')
 recepti, avtorji, kategorije, povezave = razdeli_tabelo(recepti)
-orodja.zapisi_tabelo(recepti, ['id', 'naslov', 'objava', 'avtor', 'spol', 'priprava', 'kolicina', 'stmnenj', 'stfoto',
-                      'zadnjafoto', 'kategorija', 'podkategorija', 'zdravajed', 'letofoto', 'letoobjave', 'idavtorja'], 'recepti.csv')
-orodja.zapisi_tabelo(avtorji, ['id', 'avtor'], 'avtorji.csv')
-orodja.zapisi_tabelo(povezave, ['recept', 'avtor'], 'povezave.csv')
-orodja.zapisi_tabelo(kategorije, ['recept', 'kategorija'], 'kategorije.csv')
-
-# def pripravi_imdb():
-#     regex_filma = re.compile(
-#         r'<tr class="(odd|even) detailed">.*?'
-#         r'href="/title/tt(?P<id>\d+)/".*?'
-#         r'title="(?P<naslov>.*?) \((?P<leto>\d{4})\)".*?'
-#         r'title="Users rated this (?P<ocena>.+?)/1(0|1).*?'
-#         r'<span class="outline">(?P<opis>.+?)</span>.*?'
-#         r'<span class="credit">.*?With: (?P<igralci>.*?)</span>.*?'
-#         r'<span class="genre">(?P<zanri>.*?)</span>',
-#         flags=re.DOTALL
-#     )
-#
-#     filmi, igralci, zanri = {}, {}, {}
-#     vloge, dolocitve_zanra = set(), set()
-#     zanri_korenov = {}
-#
-#     for html_datoteka in orodja.datoteke('zajete-strani/imdb/'):
-#         for film in re.finditer(regex_filma, orodja.vsebina_datoteke(html_datoteka)):
-#             id_filma, podatki = uredi_film(film)
-#             filmi[id_filma] = podatki
-#
-#     for id_filma, film in filmi.items():
-#         opis_filma = film.pop('opis')
-#         igralci_filma = film.pop('igralci')
-#         zanri_filma = film.pop('zanri')
-#         for id_igralca, ime_igralca in igralci_filma.items():
-#             igralci[id_igralca] = {'id': id_igralca, 'ime': ime_igralca}
-#             vloge.add((id_igralca, id_filma))
-#         for id_zanra, ime_zanra in zanri_filma.items():
-#             zanri[id_zanra] = {'id': id_zanra, 'ime': ime_zanra}
-#             dolocitve_zanra.add((id_zanra, id_filma))
-#         for koren in orodja.koreni_besed(opis_filma):
-#             if koren == 'vader':
-#                 print(film)
-#             zanri_korena = zanri_korenov.get(koren, {'koren': koren})
-#             for id_zanra in zanri_filma:
-#                 zanri_korena[id_zanra] = zanri_korena.get(id_zanra, 0) + 1
-#             zanri_korenov[koren] = zanri_korena
-#
-#     vloge = [{'igralec': id_igralca, 'film': id_filma}
-#              for id_igralca, id_filma in vloge]
-#     dolocitve_zanra = [{'zanr': id_zanra, 'film': id_filma}
-#              for id_zanra, id_filma in dolocitve_zanra]
-#
-#     for koren in zanri_korenov:
-#         for id_zanra in zanri:
-#             zanri_korenov[koren].setdefault(id_zanra, 0)
-#
-#     orodja.zapisi_tabelo(sorted(filmi.values(), key=lambda film: film['id']),
-#                          ['id', 'naslov', 'leto', 'ocena'], 'csv-datoteke/filmi.csv')
-#     orodja.zapisi_tabelo(sorted(igralci.values(), key=lambda igralec: igralec['id']),
-#                          ['id', 'ime'], 'csv-datoteke/igralci.csv')
-#     orodja.zapisi_tabelo(sorted(zanri.values(), key=lambda zanr: zanr['id']),
-#                          ['id', 'ime'], 'csv-datoteke/zanri.csv')
-#     orodja.zapisi_tabelo(sorted(vloge, key=lambda vloga: (vloga['film'], vloga['igralec'])),
-#                          ['igralec', 'film'], 'csv-datoteke/vloge.csv')
-#     orodja.zapisi_tabelo(sorted(dolocitve_zanra, key=lambda dolocitev: (dolocitev['film'], dolocitev['zanr'])),
-#                          ['film', 'zanr'], 'csv-datoteke/dolocitve_zanra.csv')
-#     orodja.zapisi_tabelo(sorted(zanri_korenov.values(), key=lambda koren: koren['koren']),
-#                         ['koren'] + list(zanri), 'csv-datoteke/zanri_korenov.csv')
-#
-#
-# def uredi_film(film):
-#     podatki = film.groupdict()
-#
-#     regex_igralca = re.compile(
-#         r'<a href="/name/nm(?P<id>\w+)/">(?P<ime>.+?)</a>'
-#     )
-#     podatki['igralci'] = {
-#         igralec.group('id'): igralec.group('ime')
-#         for
-#         igralec in re.finditer(regex_igralca, podatki['igralci'])
-#     }
-#
-#     regex_zanra = re.compile(
-#         r'<a href="/genre/(?P<id>\w+)">(?P<ime>.+?)</a>'
-#     )
-#     podatki['zanri'] = {
-#         zanr.group('id'): zanr.group('ime')
-#         for
-#         zanr in re.finditer(regex_zanra, podatki['zanri'])
-#     }
-#
-#     return podatki['id'], podatki
-#
-#
-# def pripravi_rotten():
-#     regex_filma = re.compile(
-#         # r'<tr> <td class="bold">(?P<rang>\d+).</td>.*?'
-#         r'<tr> <td class="bold">\d+.</td>.*?'
-#         r'<span class="tMeterScore">(?P<ocena>\d+)%</span>.*?'
-#         r'<a.*?href="/m/(?P<id>.*?)/">'
-#         r'(?P<naslov>.*?) \((?P<leto>\d{4})\)</a>'
-#     )
-#
-#     filmi = {}
-#
-#     for html_datoteka in orodja.datoteke('zajete-strani/rotten/'):
-#         for film in re.finditer(regex_filma, orodja.vsebina_datoteke(html_datoteka)):
-#             podatki = film.groupdict()
-#             filmi[podatki['id']] = podatki
-#
-#     orodja.zapisi_tabelo(sorted(filmi.values(), key=lambda film: film['id']),
-#                          ['id', 'naslov', 'leto', 'ocena'], 'csv-datoteke/rotten.csv')
-#
-#
-# zajemi_imdb()
-# zajemi_rotten()
-# pripravi_imdb()
-# pripravi_rotten()
+orodja.zapisi_tabelo(recepti, ['id', 'naslov', 'objava', 'letoobjave', 'zahtevnost', 'priprava', 'kolicina', 'stmnenj', 'stfoto',
+                      'zadnjafoto', 'letofoto', 'zdravajed'], 'ReceptiCSV/recepti.csv')
+orodja.zapisi_tabelo(avtorji, ['id', 'avtor', 'spol'], 'ReceptiCSV/avtorji.csv')
+orodja.zapisi_tabelo(povezave, ['recept', 'avtor'], 'ReceptiCSV/povezave.csv')
+orodja.zapisi_tabelo(kategorije, ['recept', 'kategorija', 'podkategorija'], 'ReceptiCSV/kategorije.csv')
+print("Končano!")
