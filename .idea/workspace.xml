@@ -2,14 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="d704d419-ab94-44bd-8f0b-4cd0c6c2ce8b" name="Default" comment="">
-      <change type="DELETED" beforePath="$PROJECT_DIR$/avtorji.csv" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/kategorije.csv" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/povezave.csv" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/recepti.csv" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/test.txt" afterPath="" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/ReceptiCSV/PoskusUrejanja.ipynb" afterPath="$PROJECT_DIR$/ReceptiCSV/PoskusUrejanja.ipynb" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/ReceptiCSV/recepti.csv" afterPath="$PROJECT_DIR$/ReceptiCSV/recepti.csv" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/ZajemiRecepte.py" afterPath="$PROJECT_DIR$/ZajemiRecepte.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/csv-datoteke/PoskusUrejanja.ipynb" afterPath="$PROJECT_DIR$/csv-datoteke/PoskusUrejanja.ipynb" />
     </list>
     <ignored path="KuharskiRecepti.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -33,8 +29,8 @@
       <file leaf-file-name="ZajemiRecepte.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/ZajemiRecepte.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-1.0201097">
-              <caret line="54" column="51" selection-start-line="54" selection-start-column="51" selection-end-line="54" selection-end-column="51" />
+            <state vertical-scroll-proportion="0.6837294">
+              <caret line="73" column="0" selection-start-line="73" selection-start-column="0" selection-end-line="73" selection-end-column="0" />
               <folding>
                 <element signature="e#0#9#0" expanded="true" />
               </folding>
@@ -113,8 +109,8 @@
           </PATH>
         </subPane>
       </pane>
-      <pane id="Scope" />
       <pane id="Scratches" />
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -431,8 +427,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/ZajemiRecepte.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-1.0201097">
-          <caret line="54" column="51" selection-start-line="54" selection-start-column="51" selection-end-line="54" selection-end-column="51" />
+        <state vertical-scroll-proportion="0.6837294">
+          <caret line="73" column="0" selection-start-line="73" selection-start-column="0" selection-end-line="73" selection-end-column="0" />
           <folding>
             <element signature="e#0#9#0" expanded="true" />
           </folding>
