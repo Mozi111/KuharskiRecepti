@@ -68,9 +68,6 @@ def pocisti_recept(recept):
      del podatki['tezavnost3']
      del podatki['tezavnost4']
      del podatki['tezavnost5']
-     # Ce podatkov o bolj zdravi jedi ni
-     #if not podatki['zdravajed']:
-     #     podatki['zdravajed'] = "Ni podano"
 
      podatki['avtor'] = {'id': podatki['idavtorja'], 'avtor': podatki['avtor'], 'spol': podatki['spol']}
      del podatki['idavtorja']
