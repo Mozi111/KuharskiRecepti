@@ -35,5 +35,5 @@ Povezave vsebujejo:
 * id recepta
 * id avtorja
 
-### Cilj
-Analiziral bom recepte.
+## Predvidena analiza
+Analiziral bom kategorije (najpopularnejše, najbolj zastopane, najlažje, ...) ter recepte glede na spol avtorjev.
